@@ -1,4 +1,3 @@
-
 install.packages("readxl")
 library("readxl")
 
@@ -92,5 +91,75 @@ out # verify the value of each outlier
 boxplot(heart$Resting_blood_pressure, outline = F)
 median(heart$Resting_blood_pressure)
 heart[heart$Resting_blood_pressure >= 2 * desv , ]$Resting_blood_pressure = median(heart$Resting_blood_pressure) # Replace verify values higher than with the median
+
+# Decision tree Classification - divide train and test
+install.packages("rpart", dependencies = T)
+library(rpart)
+sample = sample(2,1000, replace = T, prob = c(0.8,0.2))
+diseasetrain = heart[sample == 1,] 
+diseasetest = heart[sample ==2,]
+
+# Decision tree Classification - model
+treeheart = rpart(Heart_Disease ~., data = diseasetrain, method = "class")
+treeheart
+plot(treeheart)
+text(treeheart, use.n = T, all = T, cex = .8)
+
+test = predict(treeheart, newdata = diseasetest)
+head(test)
+
+# Decision tree Classification - metrics
+comparison = cbind(diseasetest, test)
+comparison
+
+comparison["Result"] = ifelse(comparison$`0` >= 0.5, 0, 1)
+comparison
+
+confusion_matrix = table(comparison$Heart_Disease,comparison$Result)
+confusion_matrix
+
+accuracy_test = sum(diag(confusion_matrix)) / sum(confusion_matrix)
+accuracy_test
+
+true_pos = (confusion_matrix[4]/(confusion_matrix[2] + confusion_matrix[4]))
+true_pos  
+
+true_neg = (confusion_matrix[1]/(confusion_matrix[1] + confusion_matrix[3]))
+true_neg
+
+# Naive bayes Classification 
+install.packages("e1071")
+library("e1071")
+
+heart$Heart_Disease = as.factor(heart$Heart_Disease)   #requisite for naive bayes
+
+# Naive bayes Classification - train and test
+samplenaive = sample(2,1000, replace = T, prob = c(0.7,0.3))
+train_naive = heart[sample == 1,] 
+test_naive = heart[sample ==2,]
+
+# Naive bayes Classification - model
+model_naive = naiveBayes(Heart_Disease ~., train_naive ) # ~. uses all variables as independent
+model_naive
+
+# Naive bayes Classification - metrics
+comparison_naive = predict(model_naive, test_naive)
+comparison_naive
+
+conf_matrix_naive = table(test_naive$Heart_Disease,comparison_naive)
+conf_matrix_naive
+
+accuracy_test_naive = sum(diag(conf_matrix_naive)) / sum(conf_matrix_naive)
+accuracy_test_naive
+
+true_pos_naive = (conf_matrix_naive[4]/(conf_matrix_naive[2] + conf_matrix_naive[4]))
+true_pos_naive  
+
+true_neg_naive = (conf_matrix_naive[1]/(conf_matrix_naive[1] + conf_matrix_naive[3]))
+true_neg_naive
+
+cat("Accuracy for Decision tree is", accuracy_test,", the true positve is", true_pos,"and the true negative is" ,true_neg )
+
+cat("Accuracy for Naive is", accuracy_test_naive,", the true positve is", true_pos_naive,"and the true negative is" ,true_neg_naive )
 
 
