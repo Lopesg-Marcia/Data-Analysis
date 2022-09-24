@@ -1,7 +1,7 @@
 install.packages("readxl")
 library("readxl")
 
-# Import datset, define empty as na, strings Factors T strings have domain
+# Import dataset, define empty as na, strings Factors T strings have domain
 
 heart = read.csv("HeartDisease.csv", na.strings = "", stringsAsFactors = T)
 head(heart)
